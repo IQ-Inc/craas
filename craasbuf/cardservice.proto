@@ -1,0 +1,29 @@
+syntax = "proto3";
+package craasbuf;
+
+import "google/protobuf/empty.proto";
+
+// Card is a user's card
+message Card {
+    // id the card id
+    string id = 1;  
+}
+
+// CardRequest is 
+message CardRequest {
+    // nothing; there is no data
+    google.protobuf.Empty nothing = 1;
+}
+
+// CardResponse is the response from the server
+message CardResponse {
+    // card is the associated card
+    Card card = 1;
+}
+
+// CardReader is a service for reading card events
+service CardReader {
+    // GetCardEvents returns a stream of CardResponses as long as the
+    // client is connected.
+    rpc GetCardEvents(CardRequest) returns (stream CardResponse);
+}
