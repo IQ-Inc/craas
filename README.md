@@ -1,9 +1,9 @@
 # Craas
 
-Card reading as a service. Craas presents a gRPC service, `CardReader`, that publishes card read events to gRPC subscribers.
+Card reading as a service. Craas presents a TCP server that publishes card read events to TCP subscribers.
 
-- [X] client debugging. `craas -testing` sets up a REPL so that you can publish arbitrary card events from the command line. Useful for testing your subscriber implementation
-- [ ] read card events from a serial device
+- [X] client debugging. `craas -testing` sets up a REPL so that you can publish arbitrary card events from the command line. Useful for testing your subscriber implementation without having a card reader.
+- [ ] read card events from a serial device.
 
 ## Usage
 

@@ -68,6 +68,8 @@ func (r *repl) run(prompt string) {
 		case input := <-stdinread():
 			r.bufs <- input
 		case <-r.close:
+			fmt.Println("Closing REPL...")
+			os.Exit(0)
 			return
 		}
 	}
