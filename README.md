@@ -1,13 +1,13 @@
 # Craas
 
-Card reading as a service. Craas presents a TCP server that publishes card read events to TCP subscribers.
+Card reading as a service (CRAAS). `craas` presents a TCP server that publishes Wiegand card read events from a serial device to TCP subscribers. Want to know when an IQ employee badges into the Foosball table or the front door? Use `craas`.
 
 - [X] client debugging. `craas -testing` sets up a REPL so that you can publish arbitrary card events from the command line. Useful for testing your subscriber implementation without having a card reader.
-- [ ] read card events from a serial device.
+- [ ] TODO: read card events from a serial device.
 
 ## Usage
 
-[Download](https://github.com/IQ-Inc/craas/releases) the relevant binary for your system, or build from source.
+[Download](https://github.com/IQ-Inc/craas/releases) the relevant binary for your system, or build from source. Requires go 1.9.x.
 
 ```bash
 $ ./crass -h # print help
