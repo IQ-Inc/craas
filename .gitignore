@@ -1,1 +1,7 @@
 *.pb.go
+*.exe
+
+# Build outputs from the perspective of this
+# gitignore
+craas
+examples/client/client

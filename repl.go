@@ -14,23 +14,28 @@ type repl struct {
 	release chan struct{}
 }
 
+// Read reads the bytes from the REPL into p. Returns the number of
+// bytes read. There are no errors
 func (r *repl) Read(p []byte) (int, error) {
 	replBuf := <-r.bufs
 	return copy(p, replBuf), nil
 }
 
+// Close closes the REPL
 func (r *repl) Close() error {
 	r.close <- struct{}{}
 	return nil
 }
 
+// newRepl creates a new REPL
 func newRepl(prompt string) io.ReadCloser {
-
 	r := &repl{make(chan []byte), make(chan struct{}), make(chan struct{})}
 	go r.run(prompt)
 	return r
 }
 
+// run runs the REPL. Displays a line prompt designated by prompt.
+// Blocks until closed.
 func (r *repl) run(prompt string) {
 
 	stdinread := func() chan []byte {

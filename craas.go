@@ -10,7 +10,6 @@ import (
 	"sync"
 
 	pb "github.com/IQ-Inc/craas/craasbuf"
-
 	"google.golang.org/grpc"
 )
 
@@ -38,28 +37,43 @@ func validateFlags() bool {
 	return true
 }
 
+// cardAuth hodls the reader of card events.
+// It pushes reader messages to the subscribers
 type cardAuth struct {
-	sync.Mutex
-	rdr         io.Reader
-	subscribers []chan []byte
+	sync.Mutex                // lock em down
+	rdr         io.Reader     // source of card events
+	subscribers []chan []byte // things that are interested in the card events
 }
 
 func (ca *cardAuth) GetCardEvents(_ *pb.CardRequest, stream pb.CardReader_GetCardEventsServer) error {
 	c := make(chan []byte)
+	idx := -1
 
+	// Add the new client channel into
+	// the cardAuth struct
 	func() {
 		ca.Lock()
 		defer ca.Unlock()
+
+		idx = len(ca.subscribers)
 		ca.subscribers = append(ca.subscribers, c)
 	}()
 
+	// Listen for messages on the channel
 	for msg := range c {
 		resp := &pb.CardResponse{
 			Card: &pb.Card{
 				Id: string(msg),
 			},
 		}
+
 		if err := stream.Send(resp); err != nil {
+			// Remove the subscriber from the list of subscribers
+			func() {
+				ca.Lock()
+				defer ca.Unlock()
+				ca.subscribers = append(ca.subscribers[:idx], ca.subscribers[idx+1:]...)
+			}()
 			return err
 		}
 	}
@@ -67,12 +81,22 @@ func (ca *cardAuth) GetCardEvents(_ *pb.CardRequest, stream pb.CardReader_GetCar
 	return nil
 }
 
+// publish moves buffers from the reader into the
+// subscriber's channels
 func publish(ca *cardAuth) {
-	bs := make([]byte, 255)
+	bs := [256]byte{}
 	for {
-		n, err := ca.rdr.Read(bs)
+		n, err := ca.rdr.Read(bs[:])
 
 		if err != nil {
+			log.Println("Error on reader:", err)
+			func() {
+				ca.Lock()
+				defer ca.Unlock()
+				for _, sub := range ca.subscribers {
+					close(sub)
+				}
+			}()
 			return
 		}
 
@@ -103,7 +127,7 @@ func main() {
 
 	grpcServer := grpc.NewServer()
 	ca := &cardAuth{rdr: rdr, subscribers: []chan []byte{}}
-	publish(ca)
+	go publish(ca)
 
 	pb.RegisterCardReaderServer(grpcServer, ca)
 	grpcServer.Serve(lis)
