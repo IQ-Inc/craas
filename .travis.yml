@@ -1,0 +1,18 @@
+language: go
+script: GOOS=$TARGET go build -v -o craas_$TARGET
+go:
+  - 1.9.x
+env:
+  - TARGET=windows
+  - TARGET=linux
+  - TARGET=darwin
+deploy:
+  provider: releases
+  api_key:
+    secure: w8BLd//TLayZMDV1heU/9NkXIxkp4v41XtccoFcELw+qpgDfORXI/UjIxaVTff+WT4MjOQtuvblzz/+CjCX2S/mln1VdlBEeVW0xYv7cfO73dKoiRl1Rcw9LIGHeXBXgvfCyB8J7/11CLOKFwwokHU6IVBujprhLxF/aYMyVqGJFeenOma8VnV/ulEIXy7Ga75uGoikBeBfYgKlB4ptTAigAXKG3Za9+HwiZtz2b1AkPyC4hKSLbO2iAxxK0/UCyFFeCqZRUl9048Bm4ScJR7AvSQbTIleUbb44XUNeGZaOojjBDRftrmU6qPMW6kVI3LfFbp6+Oy57rXdgkwdPJ04nfeWPnxmZHCFS8CFJDnsOhMjjljvMs+rWka++4+EUjzjVyInVwEsLP93mh2+i+wX/R1COjsXQ8NIJcMRDKWceRl6nbQBkrfJ/4E0W1pn22wF29j93vKLYQou4IoeWxt5sUvoZTc1t21ezz9+uEaRJd+LQhszCrbooSqN7yfnaVGkPkuCZxQocS1PhCAt5/5zOtOhn+yw7J3fuCHqYSA/m4DkEpME+vRfTec6MF6cGIMm0Jk8VHCypvf8x3YW/QpEadN+GqWE46/2JuSuvx4wHu6MrQApfJT6CmNKmBaFaWJxxDCGCMHaxoq63kJw8107WxS8G/KZ1Ysb2NLBCBb8Y=
+  file: 
+    - craas_$TARGET
+  skip_cleanup: true
+  on:
+    repo: IQ-Inc/craas
+    tags: true

@@ -1,4 +1,3 @@
-*.pb.go
 *.exe
 
 # Build outputs from the perspective of this
