@@ -63,7 +63,6 @@ func (r *repl) run(prompt string) {
 	}
 
 	for {
-
 		fmt.Print(prompt + " ")
 		select {
 		case input := <-stdinread():

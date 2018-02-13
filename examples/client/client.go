@@ -18,7 +18,7 @@ import (
 )
 
 func main() {
-	conn, err := grpc.Dial(":8888", grpc.WithInsecure())
+	conn, err := grpc.Dial(":8080", grpc.WithInsecure())
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -37,6 +37,6 @@ func main() {
 		if err != nil {
 			log.Fatal(err)
 		}
-		log.Println(msg.Card.Id)
+		log.Println("Received", msg.Card.Id)
 	}
 }

@@ -1,3 +1,4 @@
+/*Package craas implements a card reader gRPC service.*/
 package main
 
 import (
@@ -8,6 +9,7 @@ import (
 	"net"
 	"os"
 	"sync"
+	"time"
 
 	pb "github.com/IQ-Inc/craas/craasbuf"
 	"google.golang.org/grpc"
@@ -19,6 +21,8 @@ var (
 	flagtest = flag.Bool("testing", false, "input 'card reads' into a repl; useful for testing")
 	// flagserial reads from the serial port
 	flagserial = flag.String("serial", "", "serial port")
+	// flagport publish to the host and port
+	flagport = flag.String("port", ":8080", "network host and port")
 )
 
 // validateFlags parsers and validates command-line flags. Returns false if
@@ -68,12 +72,7 @@ func (ca *cardAuth) GetCardEvents(_ *pb.CardRequest, stream pb.CardReader_GetCar
 		}
 
 		if err := stream.Send(resp); err != nil {
-			// Remove the subscriber from the list of subscribers
-			func() {
-				ca.Lock()
-				defer ca.Unlock()
-				ca.subscribers = append(ca.subscribers[:idx], ca.subscribers[idx+1:]...)
-			}()
+			log.Println("client send error:", err)
 			return err
 		}
 	}
@@ -90,6 +89,8 @@ func publish(ca *cardAuth) {
 
 		if err != nil {
 			log.Println("Error on reader:", err)
+			log.Println("The service is shutting down")
+
 			func() {
 				ca.Lock()
 				defer ca.Unlock()
@@ -103,9 +104,26 @@ func publish(ca *cardAuth) {
 		func() {
 			ca.Lock()
 			defer ca.Unlock()
-			for _, sub := range ca.subscribers {
-				sub <- bs[:n]
+
+			removals := make([]int, 0)
+
+			for idx, sub := range ca.subscribers {
+				select {
+				case sub <- bs[:n]:
+					continue
+				case <-time.After(200 * time.Millisecond):
+					log.Println("subscriber channel failed to accept message")
+					log.Println("dropping client...")
+					removals = append(removals, idx)
+				}
 			}
+
+			for removal := range removals {
+				sub := ca.subscribers[removal]
+				close(sub)
+				ca.subscribers = append(ca.subscribers[:removal], ca.subscribers[removal+1:]...)
+			}
+
 		}()
 	}
 }
@@ -115,14 +133,16 @@ func main() {
 		os.Exit(1)
 	}
 
+	lis, err := net.Listen("tcp", *flagport)
+	if err != nil {
+		log.Fatalln(err)
+	}
+
+	log.Println("gRPC service started at", *flagport)
+
 	var rdr io.Reader
 	if *flagtest {
 		rdr = newRepl(">>")
-	}
-
-	lis, err := net.Listen("tcp", ":8888")
-	if err != nil {
-		log.Fatalln(err)
 	}
 
 	grpcServer := grpc.NewServer()

@@ -1,3 +1,3 @@
 # Craas
 
-Card reader as a service
+Card reading as a service.
